@@ -4,56 +4,36 @@ import FacebookProvider from "next-auth/providers/facebook"
 import GithubProvider from "next-auth/providers/github"
 import TwitterProvider from "next-auth/providers/twitter"
 import Auth0Provider from "next-auth/providers/auth0"
-// import AppleProvider from "next-auth/providers/apple"
-// import EmailProvider from "next-auth/providers/email"
+import SequelizeAdapter from '@next-auth/sequelize-adapter';
+import { randomUUID } from 'crypto';
 
-// For more information on each option (and a full list of options) go to
-// https://next-auth.js.org/configuration/options
+const sequelize = new Sequelize(process.env.DB_URI, {});
+
+// ONCE
+// sequelize.sync().then(sql=>{
+//   sql.query(`
+//   INSERT INTO "accounts" ("id","type","provider","provider_account_id")
+//   VALUES ($1,$2,$3,$4)
+//   RETURNING "id","type","provider","provider_account_id";
+//   `,{bind: [randomUUID(),'oauth',process.env.MY_ACCOUNT_PROVIDER,process.env.MY_ACCOUNT_PROVIDER_ID,]})
+// })
+
 export const authOptions: NextAuthOptions = {
-  // https://next-auth.js.org/configuration/providers/oauth
   providers: [
-    /* EmailProvider({
-         server: process.env.EMAIL_SERVER,
-         from: process.env.EMAIL_FROM,
-       }),
-    // Temporarily removing the Apple provider from the demo site as the
-    // callback URL for it needs updating due to Vercel changing domains
-
-    Providers.Apple({
-      clientId: process.env.APPLE_ID,
-      clientSecret: {
-        appleId: process.env.APPLE_ID,
-        teamId: process.env.APPLE_TEAM_ID,
-        privateKey: process.env.APPLE_PRIVATE_KEY,
-        keyId: process.env.APPLE_KEY_ID,
+    DiscordProvider({
+      clientId: `${process.env.DISCORD_CLIENT_ID}`,
+      clientSecret: `${process.env.DISCORD_SECRET}`,
+      authorization: {
+        params: {
+          scope: 'identify guilds',
+        },
       },
-    }),
-    */
-    FacebookProvider({
-      clientId: process.env.FACEBOOK_ID,
-      clientSecret: process.env.FACEBOOK_SECRET,
-    }),
-    GithubProvider({
-      clientId: process.env.GITHUB_ID,
-      clientSecret: process.env.GITHUB_SECRET,
-    }),
-    GoogleProvider({
-      clientId: process.env.GOOGLE_ID,
-      clientSecret: process.env.GOOGLE_SECRET,
-    }),
-    TwitterProvider({
-      clientId: process.env.TWITTER_ID,
-      clientSecret: process.env.TWITTER_SECRET,
-    }),
-    Auth0Provider({
-      clientId: process.env.AUTH0_ID,
-      clientSecret: process.env.AUTH0_SECRET,
-      issuer: process.env.AUTH0_ISSUER,
     }),
   ],
   theme: {
     colorScheme: "light",
   },
+  debug:true,
   callbacks: {
     async jwt({ token }) {
       token.userRole = "admin"
